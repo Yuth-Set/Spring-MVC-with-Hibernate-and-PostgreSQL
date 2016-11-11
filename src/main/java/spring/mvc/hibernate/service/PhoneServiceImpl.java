@@ -33,8 +33,8 @@ public class PhoneServiceImpl implements PhoneService {
 
 	@Override
     @Transactional
-	public List<Phone> listPhones() {
-		return this.phoneDAO.listPhones();
+	public List<Phone> listPhones(Integer offset, Integer maxResults) {
+		return this.phoneDAO.listPhones(offset, maxResults);
 	}
 
 	@Override
@@ -52,7 +52,14 @@ public class PhoneServiceImpl implements PhoneService {
 
 	@Override
 	@Transactional
-	public List<Phone> search(String keyword) {
-		return this.phoneDAO.search(keyword);
+	public List<Phone> search(String keyword, Integer offset, Integer maxResults) {
+		return this.phoneDAO.search(keyword, offset, maxResults);
 	}
+
+	@Override
+	@Transactional
+	public int countPhonesRecord() {
+		return this.phoneDAO.countPhonesRecord();
+	}
+
 }

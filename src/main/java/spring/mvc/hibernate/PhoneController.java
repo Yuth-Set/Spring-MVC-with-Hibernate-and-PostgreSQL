@@ -17,54 +17,60 @@ import spring.mvc.hibernate.service.PhoneService;
 public class PhoneController {
 
 	private PhoneService phoneService;
+
 	@Autowired(required = true)
-    @Qualifier(value = "phoneService")
-	
+	@Qualifier(value = "phoneService")
+
 	public void setPhoneService(PhoneService ps) {
 		this.phoneService = ps;
 	}
-	
+
 	@RequestMapping(value = "/phones", method = RequestMethod.GET)
-    public String listPhones(Model model) {
-        model.addAttribute("phone", new Phone());
-        model.addAttribute("listPhones", this.phoneService.listPhones());
-        return "phone";
-    }
+	public String listPhones(Model model, Integer offset, Integer maxResults) {
+		model.addAttribute("phone", new Phone());
+		model.addAttribute("listPhones", this.phoneService.listPhones(offset, maxResults));
+		model.addAttribute("count", phoneService.countPhonesRecord());
+		model.addAttribute("offset", offset);
+		return "phone";
+	}
 
-    // For add and update phone both
-    @RequestMapping(value = "/phone/add", method = RequestMethod.POST)
-    public String addPhone(@ModelAttribute("phone") Phone p) {
+	// For add and update phone both
+	@RequestMapping(value = "/phone/add", method = RequestMethod.POST)
+	public String addPhone(@ModelAttribute("phone") Phone p) {
 
-        if (p.getId() == 0) {
-            // new phone, add it
-            this.phoneService.addPhone(p);
-        } else {
-            // existing phone, call update
-            this.phoneService.updatePhone(p);
-        }
+		if (p.getId() == 0) {
+			// new phone, add it
+			this.phoneService.addPhone(p);
+		} else {
+			// existing phone, call update
+			this.phoneService.updatePhone(p);
+		}
 
-        return "redirect:/phones";
+		return "redirect:/phones";
 
-    }
+	}
 
-    @RequestMapping("/remove/{id}")
-    public String removePhone(@PathVariable("id") int id) {
+	@RequestMapping("/remove/{id}")
+	public String removePhone(@PathVariable("id") int id) {
 
-        this.phoneService.removePhone(id);
-        return "redirect:/phones";
-    }
+		this.phoneService.removePhone(id);
+		return "redirect:/phones";
+	}
 
-    @RequestMapping("/edit/{id}")
-    public String editPhone(@PathVariable("id") int id, Model model) {
-        model.addAttribute("phone", this.phoneService.getPhoneById(id));
-        model.addAttribute("listPhones", this.phoneService.listPhones());
-        return "phone";
-    }
-	
-    @RequestMapping("/search")
-    public String searchPhones(@RequestParam("key") String key, Model model) {
-    	model.addAttribute("phone", new Phone());
-        model.addAttribute("listPhones", this.phoneService.search(key));
-        return "phone";
-    }
+	@RequestMapping("/edit/{id}")
+	public String editPhone(@PathVariable("id") int id, Model model, Integer offset, Integer maxResults) {
+		model.addAttribute("phone", phoneService.getPhoneById(id));
+		model.addAttribute("listPhones", phoneService.listPhones(offset, maxResults));
+		model.addAttribute("count", phoneService.countPhonesRecord());
+		return "phone";
+	}
+
+	@RequestMapping("/search")
+	public String searchPhones(@RequestParam("key") String key, Model model, Integer offset, Integer maxResults) {
+		model.addAttribute("phone", new Phone());
+		model.addAttribute("listPhones", phoneService.search(key, offset, maxResults));
+		model.addAttribute("count", phoneService.countPhonesRecord());
+		model.addAttribute("searchKey", "?key=" + key);
+		return "phone";
+	}
 }

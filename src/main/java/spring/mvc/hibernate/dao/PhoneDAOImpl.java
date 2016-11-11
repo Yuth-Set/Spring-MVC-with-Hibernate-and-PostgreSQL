@@ -12,12 +12,9 @@ import spring.mvc.hibernate.model.Phone;
 
 @Repository
 public class PhoneDAOImpl implements PhoneDAO {
-
 	private static final Logger logger = LoggerFactory.getLogger(PhoneDAOImpl.class);
-	
+	private int count;
 	private SessionFactory sessionFactory;
-	
-	
 	public void setSessionFactory(SessionFactory sf) {
 		this.sessionFactory = sf;
 	}
@@ -40,9 +37,15 @@ public class PhoneDAOImpl implements PhoneDAO {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Phone> listPhones() {
+	public List<Phone> listPhones(Integer offset, Integer maxResults) {
 		Session session = this.sessionFactory.getCurrentSession();
-        List<Phone> phonesList = session.createQuery("from Phone").list();
+		this.count = ((Number) session.createQuery("select count(*) from Phone")
+        				.uniqueResult())
+        				.intValue();
+        List<Phone> phonesList = session.createQuery("from Phone")
+        		.setFirstResult(offset != null ? offset:0)
+        		.setMaxResults(maxResults != null ? maxResults:5)
+        		.list();
         for (Phone p : phonesList) {
             logger.info("Phone List::" + p);
         }
@@ -70,13 +73,25 @@ public class PhoneDAOImpl implements PhoneDAO {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Phone> search(String keyword) {
+	public List<Phone> search(String keyword, Integer offset, Integer maxResults) {
 		Session session = this.sessionFactory.getCurrentSession();
-        List<Phone> phonesSearchList = session.createQuery("from Phone WHERE name like :key").setParameter("key", "%" + keyword + "%").list();
+        List<Phone> phonesSearchList = session.createQuery("from Phone WHERE name like :key")
+        		.setParameter("key", "%" + keyword + "%")
+        		.setFirstResult(offset != null ? offset:0)
+        		.setMaxResults(maxResults != null ? maxResults:5)
+        		.list();
         for (Phone p : phonesSearchList) {
             logger.info("Phone Search List::" + p);
         }
+        this.count = ((Number) session.createQuery("select count(*) from Phone WHERE name like :key")
+        		.setParameter("key", "%" + keyword + "%")
+        		.uniqueResult())
+        		.intValue();
         return phonesSearchList;
 	}
 
+	@Override
+	public int countPhonesRecord() {
+		return this.count;
+	}
 }
